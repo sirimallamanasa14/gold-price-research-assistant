@@ -1,0 +1,188 @@
+{
+  "name": "Gold Price Research Assistant",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "3fdd0bdb-f785-4e22-87f1-a6010625de30",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Today's date is {{ $now.format('dd MMM yyyy') }}.\nCompare today's 22K and 24K gold price per 10 grams in Hyderabad, Chennai and Mumbai.",
+        "options": {
+          "systemMessage": "Only use search results published within the last 7 days of today's date.\nInclude today's date and the word \"today\" in every search query.\nIf a source shows an older date, ignore it.\nIf you cannot find a price for today, say \"No current price found\". Never use an old date as today.\nYou MUST call the Tavily search tool before answering. Never answer from memory. List the source URL for every price."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -16,
+        -16
+      ],
+      "id": "08ef6d9c-2b4e-4ed3-b920-22d3873a0c7b",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -160,
+        192
+      ],
+      "id": "5944e9b7-b822-47f9-9ed0-947a29b37149",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YNbyYAKTla8ZDbGT",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "gold-test-4"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -16,
+        192
+      ],
+      "id": "35dfc61d-ebdb-4f79-85e2-aa4e464782db",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search in TavilySearch the web for current gold prices in Indian cities. Always use this tool to get prices and sources.",
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {
+          "topic": "news",
+          "max_results": 5,
+          "time_range": "day"
+        }
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        144,
+        192
+      ],
+      "id": "04eb721c-8244-43db-8d59-ec5a929a7598",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "Cy6BEaS03QtN8z1q",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f0c9cd39-368c-4140-91e8-e15b2863a1f3",
+              "name": "answer",
+              "value": "={{ $json.output}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        352,
+        -16
+      ],
+      "id": "2aeacdbe-1d7f-4a90-8cc7-bb2a207d1938",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4006a195-8e92-4143-a19d-4e684bf49723",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "17fb1559c66109c27968711964d218cb63e0c81798e586b92e78433aabd715ef"
+  },
+  "nodeGroups": [],
+  "id": "diuETn0X1428jIci",
+  "tags": []
+}
